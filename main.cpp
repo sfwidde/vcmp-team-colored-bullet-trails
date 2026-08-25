@@ -40,7 +40,7 @@ static void ClearBulletTraceColors()
 	}
 }
 
-static Player* SAFE_CALL FindPlayerFromPed(const void* ped)
+static Player* /*SAFE_CALL*/ FindPlayerFromPed(const void* ped)
 {
 	DWORD x = *(DWORD*)(vcmpBaseAddress + 0x42BDB0); // An object
 	// Can be NULL, e.g.: when /disconnect'ed
@@ -74,14 +74,13 @@ static NAKED CWeapon_FireHook()
 {
 	__asm
 	{
+		// Grab the shooting entity
+		mov eax, [esp+4]
+		mov shootingEntity, eax
+
 		push ebx
 		mov ebx, esp
 		sub esp, 8
-
-		// TODO: Can get the shooting Player* directly from here?
-		// Grab the shooting entity
-		mov eax, [ebx+8]
-		mov shootingEntity, eax
 
 		mov eax, vcmpBaseAddress
 		add eax, 0xE5086
@@ -91,13 +90,13 @@ static NAKED CWeapon_FireHook()
 
 static NAKED CBulletTraces_AddTraceHook()
 {
-	__asm mov dword ptr ss:0x8118F0[ebp], ebx
+	__asm mov [ebp+0x8118F0], ebx
 
+	__asm mov bulletTraceId, ebp
 	__asm pushad
 	shootingPlayer = FindPlayerFromPed(shootingEntity);
 	if (shootingPlayer)
 	{
-		__asm mov bulletTraceId, ebp
 		bulletTraceColors[bulletTraceId / 0x2C] = shootingPlayer->m_color;
 	}
 	__asm popad

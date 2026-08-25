@@ -11,10 +11,9 @@
 // Add padding to struct
 #define PAD(x, n) \
 	private: \
-		BYTE pad ## x[n]; \
+		const BYTE pad ## x[n]; \
 	public:
-
-#define NAKED     __declspec(naked) void // W/o prologue and epilogue
+#define NAKED __declspec(naked) void // Without prologue or epilogue
 #define SAFE_CALL __stdcall // The callee itself cleans the stack
 
 // -----------------------------------------------------------------------------
@@ -56,7 +55,7 @@ void InstallHook(DWORD address, LPCVOID functionHook)
 	Patch<BYTE[N]> theHook(address);
 	*theHook.m_data = 0xE9; // jmp
 	*(DWORD*)(theHook.m_data + 1) = ((DWORD)functionHook - (address + 5)); // Redirect address
-	memset((theHook.m_data + 5), 0x90, (N - 5)); // nop remaining bytes
+	memset(theHook.m_data + 5, 0x90, N - 5); // nop remaining bytes
 }
 
 // -----------------------------------------------------------------------------
